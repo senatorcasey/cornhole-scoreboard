@@ -53,10 +53,12 @@ void loop()
 void handleScore() {
   int scoreA = 0;
   int scoreB = 0;
-  String message = "New Score-> Hero: ";
+  String outputParams = "";
   for (int i = 0; i < server.args(); i++) {
     String paramName = server.argName(i);
     String paramValue = server.arg(i);
+
+    outputParams += paramName + ":" + paramValue + "; ";
 
     if (paramName.equals("scoreA")) {
       scoreA = validateScore(paramValue);
@@ -66,17 +68,21 @@ void handleScore() {
     }
   }
 
+  Serial.println(outputParams);
   if(scoreA >= 0 && scoreB >= 0) {
-    serverSend(message + scoreA + ", Villain:" + scoreB);
+//    serverSend("Hero: " + (String)scoreA + ", Villain:" + (String)scoreB);
+  serverSend("Score Updated!");
   }
-  else { //send some sort of error to client
+  else { //invalid scores, send bad request back to client
     server.send(400, "text/plain", "Bad request");
   }
 }
 
+//check if score value is a number and is with the range of 0-99
+//if not valid, return -1
 int validateScore(String scoreParamValue)
 {
-  int score = -1;
+  int score = 100;
   if(isNumeric(scoreParamValue)) {
     int intScore = scoreParamValue.toInt();
     if(intScore >= 0 && intScore <= 99) {
