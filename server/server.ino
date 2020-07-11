@@ -1,6 +1,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 
+/* Jonathan is thehouse!! */
 const char *ssid = "cornhole"; // The name of the Wi-Fi network that will be created
 const char *password = "first221";
 
