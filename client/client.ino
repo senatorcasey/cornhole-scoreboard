@@ -53,9 +53,9 @@ void setup() {
   digitalWrite(LED_PIN, LED_OFF);
 
   // how to identify buttons?
-//  Serial.printf("LED_PIN = LED_BUILTIN = %d\n", LED_PIN);
-//  Serial.printf("buttonA (%d) is attached to BUTTON_A_PIN (%d)\n", &buttonA, BUTTON_A_PIN);
-//  Serial.printf("buttonB (%d) is attached to BUTTON_B_PIN (%d)\n", &buttonB, BUTTON_B_PIN);
+  //  Serial.printf("LED_PIN = LED_BUILTIN = %d\n", LED_PIN);
+  //  Serial.printf("buttonA (%d) is attached to BUTTON_A_PIN (%d)\n", &buttonA, BUTTON_A_PIN);
+  //  Serial.printf("buttonB (%d) is attached to BUTTON_B_PIN (%d)\n", &buttonB, BUTTON_B_PIN);
 
   // modify the default button config for both buttons
   /* ButtonConfig setup (because it's confusing AF with all the possible options)
@@ -112,7 +112,6 @@ void loop() {
       updateTime = 0;
     } else if (nowMS - updateTime >= updateDelay) {
       updateServer();
-      updateFlag = false;
       updateTime = nowMS;
     }
   }
@@ -168,18 +167,16 @@ void handleButton(AceButton* button/* button */, uint8_t eventType, uint8_t /* b
 // create an update for the server
 void updateServer() {
   String url = "/setScore?scoreA=" + (String)sb.getHomeScore() + "&scoreB=" + (String)sb.getAwayScore();
-Serial.println(host + url);
+  Serial.println(host + url);
 
   http.begin(host + url);
 
   int httpCode = http.GET();            //Send the request
-//  String payload = http.getString();    //Get the response payload
+  if (httpCode == 200) updateFlag = false;
 
-Serial.printf("httpCode = %d\n", httpCode);   //Print HTTP return code
- // Serial.println("payload:");
-//  Serial.println(payload);    //Print request response payload
+  Serial.printf("httpCode = %d\n", httpCode);   //Print HTTP return code
 
-http.end();  //Close connection
+  http.end();  //Close connection
   Serial.println("connection closed");
   printLoopTime = true;
 } // end updateServer()
