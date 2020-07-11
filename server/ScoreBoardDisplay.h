@@ -2,13 +2,13 @@
 #define SCOREBOARDDISPLAY
 
 #include <Arduino.h>
-#include <TM1637Display.h>
+#include "TM1637Display.h"
 
 #define HOMEAWAY 0
 #define AWAYHOME 1
 
 class ScoreBoardDisplay {
-  private:
+  private:  
     // scoring related variables
     uint8_t homeScore = 0;
     uint8_t awayScore = 0;

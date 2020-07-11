@@ -1,9 +1,17 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+//#include "libraries\TM1637Display\TM1637Display.h"
+//#include "libraries\ScoreBoardDisplay\ScoreBoardDisplay.h"
+#include "TM1637Display.h"
+#include "ScoreBoardDisplay.h"
 
 const char *ssid = "cornhole"; // The name of the Wi-Fi network that will be created
 const char *password = "first221";
 
+// declare the scoreboard
+const int TM1637_CLK = D1;
+const int TM1637_DIO = D2;
+ScoreBoardDisplay sb(TM1637_CLK, TM1637_DIO);
 
 // create a webserver on port 80
 ESP8266WebServer server(80);
@@ -34,6 +42,9 @@ void setup()
   server.onNotFound(handleNotFound);
   server.begin();
   Serial.println("HTTP server started");
+
+  // setup the display
+  sb.setup();
 } // end setup()
 
 void loop()
@@ -41,6 +52,7 @@ void loop()
   loopTime = millis();
   
   server.handleClient();
+  sb.loop();
   
   if (printLoopTime) {
     Serial.printf("total loop time was %dms\n", millis() - loopTime);
@@ -54,24 +66,27 @@ void handleScore() {
   int scoreA = 0;
   int scoreB = 0;
   String outputParams = "";
+
+  //loop through parameter list and find "scoreA" and "scoreB" parameters
   for (int i = 0; i < server.args(); i++) {
     String paramName = server.argName(i);
     String paramValue = server.arg(i);
 
-    outputParams += paramName + ":" + paramValue + "; ";
+    outputParams += paramName + ":" + paramValue + "; "; //build string with all parameters
 
-    if (paramName.equals("scoreA")) {
+    if (paramName.equals("scoreA")) { // SCORE A
       scoreA = validateScore(paramValue);
     }
-    else if (paramName.equals("scoreB")) {
+    else if (paramName.equals("scoreB")) {  // SCORE B
       scoreB = validateScore(paramValue);
     }
   }
 
   Serial.println(outputParams);
-  if(scoreA >= 0 && scoreB >= 0) {
-//    serverSend("Hero: " + (String)scoreA + ", Villain:" + (String)scoreB);
-  serverSend("Score Updated!");
+  if(scoreA < 100 && scoreB < 100) {
+    sb.setHomeScore(scoreB);
+    sb.setAwayScore(scoreA);
+    serverSend("Hero: " + (String)scoreB + ", Villain:" + (String)scoreA);
   }
   else { //invalid scores, send bad request back to client
     server.send(400, "text/plain", "Bad request");
@@ -79,7 +94,7 @@ void handleScore() {
 }
 
 //check if score value is a number and is with the range of 0-99
-//if not valid, return -1
+//if not valid, return 100
 int validateScore(String scoreParamValue)
 {
   int score = 100;
